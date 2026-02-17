@@ -27,9 +27,15 @@ export async function GET(req: Request) {
         created_at: data.created_at,
         quantity_delta: data.quantity_delta,
         reason: data.reason,
-        product_sku: data.products?.sku || "",
-        product_name: data.products?.name || "",
-        location_name: data.locations?.name || ""
+        product_sku: Array.isArray(data.products)
+          ? data.products?.[0]?.sku || ""
+          : data.products?.sku || "",
+        product_name: Array.isArray(data.products)
+          ? data.products?.[0]?.name || ""
+          : data.products?.name || "",
+        location_name: Array.isArray(data.locations)
+          ? data.locations?.[0]?.name || ""
+          : data.locations?.name || ""
       }
     });
   }
@@ -47,8 +53,12 @@ export async function GET(req: Request) {
     created_at: new Date(row.created_at).toLocaleDateString(),
     quantity_delta: row.quantity_delta,
     reason: row.reason,
-    product_name: row.products?.name || "",
-    location_name: row.locations?.name || ""
+    product_name: Array.isArray(row.products)
+      ? row.products?.[0]?.name || ""
+      : row.products?.name || "",
+    location_name: Array.isArray(row.locations)
+      ? row.locations?.[0]?.name || ""
+      : row.locations?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }

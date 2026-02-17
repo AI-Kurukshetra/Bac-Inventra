@@ -51,7 +51,9 @@ export async function GET(req: Request) {
   const productsList = (products || []).map((p: any) => {
     const onHand = Number(p.quantity || 0);
     const price = Number(p.unit_price || 0);
-    const category = p.categories?.name || "Uncategorized";
+    const category = Array.isArray(p.categories)
+      ? p.categories?.[0]?.name || "Uncategorized"
+      : p.categories?.name || "Uncategorized";
     valuationByCategory[category] = (valuationByCategory[category] || 0) + onHand * price;
     const lastMovement = latestMovement[p.id] || p.created_at;
     const daysSince = Math.floor((now.getTime() - new Date(lastMovement).getTime()) / (24 * 60 * 60 * 1000));

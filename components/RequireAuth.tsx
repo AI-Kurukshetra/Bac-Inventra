@@ -92,6 +92,6 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     checkSession();
   }, [router, pathname, rolePermissions]);
 
-  if (!ready) return <div className="container">Checking session...</div>;
+  if (!ready) return null;
   return <>{children}</>;
 }

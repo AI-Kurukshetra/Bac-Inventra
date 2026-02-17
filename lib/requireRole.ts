@@ -3,7 +3,19 @@ import { NextResponse } from "next/server";
 
 export type Role = "owner" | "admin" | "manager" | "staff";
 
-export async function requireRole(req: Request, allowed: Role[]) {
+type AuthOk = {
+  ok: true;
+  role: Role;
+  userId: string;
+  orgId: string | null;
+};
+
+type AuthFail = {
+  ok: false;
+  response: NextResponse;
+};
+
+export async function requireRole(req: Request, allowed: Role[]): Promise<AuthOk | AuthFail> {
   const authHeader = req.headers.get("authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
 

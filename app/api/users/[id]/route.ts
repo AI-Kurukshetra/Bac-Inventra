@@ -3,8 +3,18 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireRole } from "@/lib/requireRole";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const auth = await requireRole(req, ["admin"]);
+  const auth = await requireRole(req, ["admin", "owner"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+
+  const { data: targetProfile, error: targetError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, org_id")
+    .eq("id", params.id)
+    .single();
+  if (targetError || !targetProfile || targetProfile.org_id !== auth.orgId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const { role, blocked } = body as { role?: string; blocked?: boolean };

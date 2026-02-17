@@ -9,6 +9,7 @@ type SalesOrder = {
   reference: string;
   customer_name: string;
   status: string;
+  approval_status?: string;
   total_amount: number;
 };
 
@@ -16,6 +17,7 @@ export default function SalesOrdersListPage() {
   const [rows, setRows] = useState<SalesOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -32,6 +34,12 @@ export default function SalesOrdersListPage() {
 
   useEffect(() => {
     load();
+    const loadRole = async () => {
+      const res = await apiFetch("/api/me");
+      const json = await res.json();
+      if (res.ok) setRole(json.data?.role || null);
+    };
+    loadRole();
   }, []);
 
   const remove = async (id: string) => {
@@ -45,6 +53,22 @@ export default function SalesOrdersListPage() {
     }
     await load();
   };
+
+  const approve = async (id: string, action: "approve" | "reject") => {
+    const res = await apiFetch("/api/sales-orders/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Failed to update approval");
+      return;
+    }
+    await load();
+  };
+
+  const canApprove = role === "admin" || role === "manager" || role === "owner";
 
   return (
     <div className="grid" style={{ gap: 24 }}>
@@ -68,6 +92,7 @@ export default function SalesOrdersListPage() {
                 <th>Reference</th>
                 <th>Customer</th>
                 <th>Status</th>
+                <th>Approval</th>
                 <th>Total</th>
                 <th>Actions</th>
               </tr>
@@ -78,9 +103,51 @@ export default function SalesOrdersListPage() {
                   <td>{row.reference}</td>
                   <td>{row.customer_name}</td>
                   <td>{row.status}</td>
+                  <td>
+                    <span className={`status ${row.approval_status || "pending"}`}>
+                      {row.approval_status || "pending"}
+                    </span>
+                  </td>
                   <td>${Number(row.total_amount).toFixed(2)}</td>
                   <td>
                     <div className="flex gap-2">
+                      {canApprove && (row.approval_status || "pending") === "pending" && (
+                        <>
+                          <button
+                            className="button secondary"
+                            onClick={() => approve(row.id, "approve")}
+                            title="Approve"
+                            aria-label="Approve"
+                          >
+                            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                              <path
+                                d="M5 12l4 4L19 6"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            className="button secondary"
+                            onClick={() => approve(row.id, "reject")}
+                            title="Reject"
+                            aria-label="Reject"
+                          >
+                            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                              <path
+                                d="M6 6l12 12M18 6l-12 12"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                       <Link
                         href={`/sales-orders/${row.id}`}
                         className="button secondary"

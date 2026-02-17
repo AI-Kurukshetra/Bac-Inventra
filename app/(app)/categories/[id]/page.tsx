@@ -30,6 +30,11 @@ export default function CategoryEditPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!name.trim()) {
+      setError("Name is required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/categories", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -56,6 +61,7 @@ export default function CategoryEditPage() {
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
         />
         <input
           className="input"

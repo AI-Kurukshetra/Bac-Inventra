@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
-export type Role = "admin" | "manager" | "staff";
+export type Role = "owner" | "admin" | "manager" | "staff";
 
 export async function requireRole(req: Request, allowed: Role[]) {
   const authHeader = req.headers.get("authorization") || "";
@@ -18,7 +18,7 @@ export async function requireRole(req: Request, allowed: Role[]) {
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
-    .select("role")
+    .select("role, org_id")
     .eq("id", userData.user.id)
     .single();
 
@@ -27,9 +27,9 @@ export async function requireRole(req: Request, allowed: Role[]) {
   }
 
   const role = (profile.role || "staff") as Role;
-  if (!allowed.includes(role)) {
+  if (role !== "owner" && !allowed.includes(role)) {
     return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
 
-  return { ok: true, role, userId: userData.user.id };
+  return { ok: true, role, userId: userData.user.id, orgId: profile.org_id || null };
 }

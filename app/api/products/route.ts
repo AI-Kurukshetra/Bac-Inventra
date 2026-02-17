@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireRole } from "@/lib/requireRole";
+import { enforceLimit } from "@/lib/billing";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: Request) {
   const auth = await requireRole(req, ["admin", "manager", "staff"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) {
+    return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+  }
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
@@ -13,6 +18,7 @@ export async function GET(req: Request) {
       .from("products")
       .select("id, sku, name, description, quantity, unit_price, low_stock_threshold, categories(name)")
       .eq("id", id)
+      .eq("org_id", auth.orgId)
       .single();
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -33,6 +39,7 @@ export async function GET(req: Request) {
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("id, sku, name, description, quantity, unit_price, low_stock_threshold, categories(name)")
+    .eq("org_id", auth.orgId)
     .order("name");
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -53,8 +60,18 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const auth = await requireRole(req, ["admin", "manager"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) {
+    return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+  }
+  const limitCheck = await enforceLimit(auth.orgId, "products");
+  if (!limitCheck.ok) {
+    return NextResponse.json({ error: limitCheck.error }, { status: 402 });
+  }
   const body = await req.json();
   const { sku, name, category_name, description, quantity, unit_price, low_stock_threshold } = body;
+  if (!sku || !String(sku).trim() || !name || !String(name).trim()) {
+    return NextResponse.json({ error: "SKU and Name are required" }, { status: 400 });
+  }
 
   let categoryId: string | null = null;
   if (category_name) {
@@ -62,6 +79,7 @@ export async function POST(req: Request) {
       .from("categories")
       .select("id")
       .eq("name", category_name)
+      .eq("org_id", auth.orgId)
       .maybeSingle();
     if (catError) {
       return NextResponse.json({ error: catError.message }, { status: 500 });
@@ -69,9 +87,13 @@ export async function POST(req: Request) {
     if (cat) {
       categoryId = cat.id;
     } else {
+      const categoryLimit = await enforceLimit(auth.orgId, "categories");
+      if (!categoryLimit.ok) {
+        return NextResponse.json({ error: categoryLimit.error }, { status: 402 });
+      }
       const { data: newCat, error: newCatError } = await supabaseAdmin
         .from("categories")
-        .insert({ name: category_name })
+        .insert({ name: category_name, org_id: auth.orgId })
         .select("id")
         .single();
       if (newCatError) {
@@ -90,7 +112,8 @@ export async function POST(req: Request) {
       description: description || null,
       quantity: quantity ? Number(quantity) : 0,
       unit_price: unit_price ? Number(unit_price) : 0,
-      low_stock_threshold: low_stock_threshold ? Number(low_stock_threshold) : 0
+      low_stock_threshold: low_stock_threshold ? Number(low_stock_threshold) : 0,
+      org_id: auth.orgId
     })
     .select()
     .single();
@@ -98,6 +121,14 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  await logAudit({
+    orgId: auth.orgId,
+    actorId: auth.userId,
+    entityType: "product",
+    entityId: data.id,
+    action: "create",
+    metadata: { sku, name }
+  });
 
   return NextResponse.json({ data });
 }
@@ -105,11 +136,17 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   const auth = await requireRole(req, ["admin", "manager"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) {
+    return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+  }
   const body = await req.json();
   const { id, sku, name, category_name, description, quantity, unit_price, low_stock_threshold } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+  if (!sku || !String(sku).trim() || !name || !String(name).trim()) {
+    return NextResponse.json({ error: "SKU and Name are required" }, { status: 400 });
   }
 
   let categoryId: string | null = null;
@@ -118,6 +155,7 @@ export async function PUT(req: Request) {
       .from("categories")
       .select("id")
       .eq("name", category_name)
+      .eq("org_id", auth.orgId)
       .maybeSingle();
     if (catError) {
       return NextResponse.json({ error: catError.message }, { status: 500 });
@@ -125,9 +163,13 @@ export async function PUT(req: Request) {
     if (cat) {
       categoryId = cat.id;
     } else {
+      const categoryLimit = await enforceLimit(auth.orgId, "categories");
+      if (!categoryLimit.ok) {
+        return NextResponse.json({ error: categoryLimit.error }, { status: 402 });
+      }
       const { data: newCat, error: newCatError } = await supabaseAdmin
         .from("categories")
-        .insert({ name: category_name })
+        .insert({ name: category_name, org_id: auth.orgId })
         .select("id")
         .single();
       if (newCatError) {
@@ -149,12 +191,21 @@ export async function PUT(req: Request) {
       low_stock_threshold: low_stock_threshold !== undefined ? Number(low_stock_threshold) : undefined
     })
     .eq("id", id)
+    .eq("org_id", auth.orgId)
     .select()
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  await logAudit({
+    orgId: auth.orgId,
+    actorId: auth.userId,
+    entityType: "product",
+    entityId: id,
+    action: "update",
+    metadata: { sku, name }
+  });
 
   return NextResponse.json({ data });
 }
@@ -162,14 +213,28 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   const auth = await requireRole(req, ["admin", "manager"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) {
+    return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+  }
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
-  const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("products")
+    .delete()
+    .eq("id", id)
+    .eq("org_id", auth.orgId);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  await logAudit({
+    orgId: auth.orgId,
+    actorId: auth.userId,
+    entityType: "product",
+    entityId: id,
+    action: "delete"
+  });
   return NextResponse.json({ data: { id } });
 }

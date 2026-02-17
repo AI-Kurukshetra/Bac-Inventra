@@ -31,6 +31,11 @@ export default function SalesOrderNewPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.reference.trim() || !form.customer_name.trim()) {
+      setError("Reference and Customer are required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/sales-orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +57,13 @@ export default function SalesOrderNewPage() {
         <p className="muted">Create a new sales order.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="Reference" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+        <input
+          className="input"
+          placeholder="Reference"
+          value={form.reference}
+          onChange={(e) => setForm({ ...form, reference: e.target.value })}
+          required
+        />
         <div>
           <input
             className="input"
@@ -60,6 +71,7 @@ export default function SalesOrderNewPage() {
             placeholder="Customer"
             value={form.customer_name}
             onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
+            required
           />
           <datalist id="customer-list">
             {customers.map((c) => (

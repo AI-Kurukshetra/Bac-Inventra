@@ -34,6 +34,11 @@ export default function ProductNewPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.sku.trim() || !form.name.trim()) {
+      setError("SKU and Name are required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,8 +60,20 @@ export default function ProductNewPage() {
         <p className="muted">Create a new product.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="SKU" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
-        <input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <input
+          className="input"
+          placeholder="SKU"
+          value={form.sku}
+          onChange={(e) => setForm({ ...form, sku: e.target.value })}
+          required
+        />
+        <input
+          className="input"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
         <div>
           <input
             className="input"

@@ -31,6 +31,11 @@ export default function PurchaseOrderNewPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.reference.trim() || !form.supplier_name.trim()) {
+      setError("Reference and Supplier are required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/purchase-orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +57,13 @@ export default function PurchaseOrderNewPage() {
         <p className="muted">Create a new purchase order.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="Reference" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+        <input
+          className="input"
+          placeholder="Reference"
+          value={form.reference}
+          onChange={(e) => setForm({ ...form, reference: e.target.value })}
+          required
+        />
         <div>
           <input
             className="input"
@@ -60,6 +71,7 @@ export default function PurchaseOrderNewPage() {
             placeholder="Supplier"
             value={form.supplier_name}
             onChange={(e) => setForm({ ...form, supplier_name: e.target.value })}
+            required
           />
           <datalist id="supplier-list">
             {suppliers.map((s) => (

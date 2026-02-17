@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { apiFetch } from "@/lib/apiFetch";
 
-type Role = "admin" | "manager" | "staff";
+type Role = "owner" | "admin" | "manager" | "staff";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -36,11 +36,19 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     ];
 
     return {
+      owner: () => true,
       admin: () => true,
-      manager: (path: string) => !path.startsWith("/users"),
+      manager: (path: string) =>
+        !path.startsWith("/users") &&
+        !path.startsWith("/orgs") &&
+        !path.startsWith("/billing") &&
+        !path.startsWith("/audit-logs"),
       staff: (path: string) => {
         if (staffBlockedPrefixes.some((p) => path.startsWith(p))) return false;
         if (staffBlockedIdSegments.some((p) => path.startsWith(p))) return false;
+        if (path.startsWith("/orgs")) return false;
+        if (path.startsWith("/billing")) return false;
+        if (path.startsWith("/audit-logs")) return false;
         return true;
       }
     } as Record<Role, (path: string) => boolean>;
@@ -60,6 +68,15 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
         return;
       }
       const role = (json.data?.role || "staff") as Role;
+      const orgId = json.data?.orgId || null;
+      if (!orgId && pathname !== "/orgs") {
+        if (role === "admin" || role === "owner") {
+          router.replace("/orgs");
+        } else {
+          router.replace("/login");
+        }
+        return;
+      }
       const allowed = rolePermissions[role]?.(pathname) ?? false;
       if (!allowed) {
         router.replace("/dashboard");

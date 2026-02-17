@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireRole } from "@/lib/requireRole";
+import { isFeatureEnabled } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const auth = await requireRole(req, ["admin", "manager", "staff"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) return NextResponse.json({ error: "Organization not set" }, { status: 403 });
+
+  const reportsEnabled = await isFeatureEnabled(auth.orgId, "reports");
+  if (!reportsEnabled) {
+    return NextResponse.json({ error: "Reports are not available on your plan." }, { status: 402 });
+  }
   const [products, categories, suppliers, customers, stock] = await Promise.all([
-    supabaseAdmin.from("products").select("id", { count: "exact" }),
-    supabaseAdmin.from("categories").select("id", { count: "exact" }),
-    supabaseAdmin.from("suppliers").select("id", { count: "exact" }),
-    supabaseAdmin.from("customers").select("id", { count: "exact" }),
-    supabaseAdmin.from("product_stock").select("sku, name, on_hand, unit_price, low_stock_threshold")
+    supabaseAdmin.from("products").select("id", { count: "exact" }).eq("org_id", auth.orgId),
+    supabaseAdmin.from("categories").select("id", { count: "exact" }).eq("org_id", auth.orgId),
+    supabaseAdmin.from("suppliers").select("id", { count: "exact" }).eq("org_id", auth.orgId),
+    supabaseAdmin.from("customers").select("id", { count: "exact" }).eq("org_id", auth.orgId),
+    supabaseAdmin
+      .from("products")
+      .select("sku, name, quantity, unit_price, low_stock_threshold")
+      .eq("org_id", auth.orgId)
   ]);
 
   if (products.error || categories.error || suppliers.error || customers.error || stock.error) {
@@ -22,7 +32,7 @@ export async function GET(req: Request) {
 
   const rows = (stock.data || []).map((row: any) => ({
     ...row,
-    on_hand: Number(row.on_hand) || 0,
+    on_hand: Number(row.quantity) || 0,
     unit_price: Number(row.unit_price) || 0,
     low_stock_threshold: Number(row.low_stock_threshold) || 0
   }));

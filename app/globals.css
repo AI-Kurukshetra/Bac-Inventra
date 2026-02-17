@@ -30,9 +30,12 @@
   .panel { @apply bg-panel border border-border rounded-xl shadow-soft p-5; }
   .grid { display: grid; gap: 1.25rem; }
   .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .card { @apply border border-border rounded-lg p-4 bg-white; }
   .table { @apply w-full border-collapse text-sm; }
   .table th, .table td { @apply text-left py-2.5 px-2 border-b border-border; }
+  .table tbody tr:hover { @apply bg-[#faf7f2]; }
   .table th { @apply text-muted font-semibold text-xs uppercase tracking-[0.06em]; }
   .form { @apply grid gap-3; }
   .input, .select, .button { @apply px-3 py-2.5 rounded-lg border border-border text-sm; }
@@ -43,6 +46,14 @@
   .kpi { @apply text-2xl font-bold; }
   .muted { @apply text-muted; }
   .error { @apply text-danger; }
+  .banner { @apply w-full border border-border rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 bg-white; }
+  .banner.warning { @apply border-[#f0d18c] bg-[#fff7e6]; }
+  .banner.danger { @apply border-[#f1b6a8] bg-[#fff1ee]; }
+  .banner-text { @apply text-sm font-medium; }
+  .status { @apply inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-[#f1f5f4] text-accent; }
+  .status.pending { @apply bg-[#fef3c7] text-[#92400e]; }
+  .status.approved { @apply bg-[#dcfce7] text-[#166534]; }
+  .status.rejected { @apply bg-[#fee2e2] text-[#991b1b]; }
 
   @media (max-width: 720px) {
     .header { @apply flex-col items-start; }

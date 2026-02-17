@@ -8,6 +8,12 @@ export default function SalesOrderEditPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [customers, setCustomers] = useState<string[]>([]);
+  const [approval, setApproval] = useState<{
+    approval_status: string;
+    approved_by_name?: string;
+    approved_at?: string | null;
+  } | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [form, setForm] = useState({
     reference: "",
     customer_name: "",
@@ -40,6 +46,19 @@ export default function SalesOrderEditPage() {
         status: s.status || "draft",
         total_amount: String(s.total_amount ?? 0)
       });
+      setApproval({
+        approval_status: s.approval_status || "pending",
+        approved_by_name: s.approved_by_name || "",
+        approved_at: s.approved_at || null
+      });
+
+      const historyRes = await apiFetch(
+        `/api/audit-logs?entity_type=sales_order&entity_id=${params.id}`
+      );
+      const historyData = await historyRes.json();
+      if (historyRes.ok) {
+        setHistory(historyData.data || []);
+      }
     };
     load();
   }, [params.id]);
@@ -48,6 +67,11 @@ export default function SalesOrderEditPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.reference.trim() || !form.customer_name.trim()) {
+      setError("Reference and Customer are required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/sales-orders", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -69,7 +93,13 @@ export default function SalesOrderEditPage() {
         <p className="muted">Update sales order details.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="Reference" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+        <input
+          className="input"
+          placeholder="Reference"
+          value={form.reference}
+          onChange={(e) => setForm({ ...form, reference: e.target.value })}
+          required
+        />
         <div>
           <input
             className="input"
@@ -77,6 +107,7 @@ export default function SalesOrderEditPage() {
             placeholder="Customer"
             value={form.customer_name}
             onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
+            required
           />
           <datalist id="customer-list">
             {customers.map((c) => (
@@ -89,6 +120,49 @@ export default function SalesOrderEditPage() {
         {error && <div className="error">{error}</div>}
         <button className="button" type="submit" disabled={loading}>Update</button>
       </form>
+
+      <div className="panel">
+        <h3>Approval</h3>
+        <div className="mt-2 flex items-center gap-3">
+          <span className={`status ${approval?.approval_status || "pending"}`}>
+            {approval?.approval_status || "pending"}
+          </span>
+          {approval?.approved_by_name && (
+            <span className="text-sm text-muted">By {approval.approved_by_name}</span>
+          )}
+          {approval?.approved_at && (
+            <span className="text-sm text-muted">
+              {new Date(approval.approved_at).toLocaleString()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h3>Approval History</h3>
+        {history.length === 0 ? (
+          <div className="text-sm text-muted mt-2">No approval actions yet.</div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>By</th>
+                <th>At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.action}</td>
+                  <td>{row.actor_name || "-"}</td>
+                  <td>{new Date(row.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

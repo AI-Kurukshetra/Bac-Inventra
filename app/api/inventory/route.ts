@@ -5,9 +5,11 @@ import { requireRole } from "@/lib/requireRole";
 export async function GET(req: Request) {
   const auth = await requireRole(req, ["admin", "manager", "staff"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) return NextResponse.json({ error: "Organization not set" }, { status: 403 });
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("sku, name, unit_price, low_stock_threshold, quantity, categories(name)")
+    .eq("org_id", auth.orgId)
     .order("name");
 
   if (error) {

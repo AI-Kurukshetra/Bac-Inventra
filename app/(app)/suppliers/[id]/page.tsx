@@ -33,6 +33,11 @@ export default function SupplierEditPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.name.trim()) {
+      setError("Name is required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/suppliers", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -54,7 +59,13 @@ export default function SupplierEditPage() {
         <p className="muted">Update supplier details.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <input
+          className="input"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
         <input className="input" placeholder="Contact Name" value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
         <input className="input" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <input className="input" placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />

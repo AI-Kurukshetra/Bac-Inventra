@@ -3,8 +3,9 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireRole } from "@/lib/requireRole";
 
 export async function GET(req: Request) {
-  const auth = await requireRole(req, ["admin"]);
+  const auth = await requireRole(req, ["admin", "owner"]);
   if (!auth.ok) return auth.response;
+  if (!auth.orgId) return NextResponse.json({ error: "Organization not set" }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") || 1);
@@ -20,8 +21,9 @@ export async function GET(req: Request) {
 
   const { data: profiles, error: profileError } = await supabaseAdmin
     .from("profiles")
-    .select("id, role, full_name")
-    .in("id", ids);
+    .select("id, role, full_name, org_id")
+    .in("id", ids)
+    .eq("org_id", auth.orgId);
 
   if (profileError) {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
@@ -29,7 +31,9 @@ export async function GET(req: Request) {
 
   const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
 
-  const mapped = users.map((u) => {
+  const mapped = users
+    .filter((u) => profileMap.has(u.id))
+    .map((u) => {
     const profile = profileMap.get(u.id);
     return {
       id: u.id,

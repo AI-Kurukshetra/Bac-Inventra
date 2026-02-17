@@ -31,6 +31,11 @@ export default function LocationEditPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.name.trim()) {
+      setError("Name is required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/locations", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +57,13 @@ export default function LocationEditPage() {
         <p className="muted">Update location details.</p>
       </div>
       <form className="panel form" onSubmit={submit}>
-        <input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <input
+          className="input"
+          placeholder="Name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          required
+        />
         <input className="input" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         {error && <div className="error">{error}</div>}
         <button className="button" type="submit" disabled={loading}>Update</button>

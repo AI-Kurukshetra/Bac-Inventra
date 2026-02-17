@@ -9,7 +9,7 @@ type UserRow = {
   created_at: string;
   last_sign_in_at: string | null;
   banned_until: string | null;
-  role: "admin" | "manager" | "staff";
+  role: "owner" | "admin" | "manager" | "staff";
   full_name: string;
 };
 
@@ -17,6 +17,8 @@ export default function UsersPage() {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("staff");
 
   const load = async () => {
     setLoading(true);
@@ -77,6 +79,51 @@ export default function UsersPage() {
         <p className="muted">Manage roles and access.</p>
       </div>
       <div className="panel">
+        <h3>Invite user</h3>
+        <form
+          className="form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!inviteEmail.trim()) {
+              setError("Email is required");
+              return;
+            }
+            const res = await apiFetch("/api/invites", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: inviteEmail, role: inviteRole })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              setError(data.error || "Invite failed");
+              return;
+            }
+            setInviteEmail("");
+            await load();
+          }}
+        >
+          <input
+            className="input"
+            placeholder="email@company.com"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            type="email"
+            required
+          />
+          <select
+            className="select"
+            value={inviteRole}
+            onChange={(e) => setInviteRole(e.target.value)}
+          >
+            <option value="owner">owner</option>
+            <option value="admin">admin</option>
+            <option value="manager">manager</option>
+            <option value="staff">staff</option>
+          </select>
+          <button className="button" type="submit">Send Invite</button>
+        </form>
+      </div>
+      <div className="panel">
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div className="muted">Loading...</div>
@@ -103,6 +150,7 @@ export default function UsersPage() {
                       value={row.role}
                       onChange={(e) => updateRole(row.id, e.target.value)}
                     >
+                      <option value="owner">owner</option>
                       <option value="admin">admin</option>
                       <option value="manager">manager</option>
                       <option value="staff">staff</option>

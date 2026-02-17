@@ -39,6 +39,16 @@ export default function StockAdjustmentNewPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    if (!form.product_sku.trim() || !form.location_name.trim()) {
+      setError("Product and Location are required");
+      setLoading(false);
+      return;
+    }
+    if (!form.quantity_delta.trim()) {
+      setError("Quantity change is required");
+      setLoading(false);
+      return;
+    }
     const res = await apiFetch("/api/stock-adjustments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -67,6 +77,7 @@ export default function StockAdjustmentNewPage() {
             placeholder="Product SKU"
             value={form.product_sku}
             onChange={(e) => setForm({ ...form, product_sku: e.target.value })}
+            required
           />
           <datalist id="product-list">
             {products.map((p) => (
@@ -81,6 +92,7 @@ export default function StockAdjustmentNewPage() {
             placeholder="Location"
             value={form.location_name}
             onChange={(e) => setForm({ ...form, location_name: e.target.value })}
+            required
           />
           <datalist id="location-list">
             {locations.map((l) => (
@@ -88,7 +100,14 @@ export default function StockAdjustmentNewPage() {
             ))}
           </datalist>
         </div>
-        <input className="input" type="number" placeholder="Quantity Change" value={form.quantity_delta} onChange={(e) => setForm({ ...form, quantity_delta: e.target.value })} />
+        <input
+          className="input"
+          type="number"
+          placeholder="Quantity Change"
+          value={form.quantity_delta}
+          onChange={(e) => setForm({ ...form, quantity_delta: e.target.value })}
+          required
+        />
         <input className="input" placeholder="Reason" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />
         {error && <div className="error">{error}</div>}
         <button className="button" type="submit" disabled={loading}>Save</button>

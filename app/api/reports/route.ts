@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireRole } from "@/lib/requireRole";
-import { isFeatureEnabled } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +9,7 @@ export async function GET(req: Request) {
   if (!auth.ok) return auth.response;
   if (!auth.orgId) return NextResponse.json({ error: "Organization not set" }, { status: 403 });
 
-  const reportsEnabled = await isFeatureEnabled(auth.orgId, "reports");
-  if (!reportsEnabled) {
-    return NextResponse.json({ error: "Reports are not available on your plan." }, { status: 402 });
-  }
+  // Basic dashboard summary should always be available.
   const [products, categories, suppliers, customers, stock] = await Promise.all([
     supabaseAdmin.from("products").select("id", { count: "exact" }).eq("org_id", auth.orgId),
     supabaseAdmin.from("categories").select("id", { count: "exact" }).eq("org_id", auth.orgId),

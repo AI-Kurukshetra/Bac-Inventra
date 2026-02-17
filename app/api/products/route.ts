@@ -55,9 +55,9 @@ export async function GET(req: Request) {
     quantity: row.quantity ?? 0,
     unit_price: row.unit_price,
     low_stock_threshold: row.low_stock_threshold,
-    category_name: Array.isArray(row.categories)
-      ? row.categories?.[0]?.name || ""
-      : row.categories?.name || ""
+    category_name: Array.isArray((row as any).categories)
+      ? (row as any).categories?.[0]?.name || ""
+      : (row as any).categories?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }

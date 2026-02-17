@@ -24,12 +24,12 @@ export async function GET(req: Request) {
     quantity: row.quantity,
     status: row.status,
     created_at: row.created_at,
-    product_sku: Array.isArray(row.products)
-      ? row.products?.[0]?.sku || ""
-      : row.products?.sku || "",
-    product_name: Array.isArray(row.products)
-      ? row.products?.[0]?.name || ""
-      : row.products?.name || "",
+    product_sku: Array.isArray((row as any).products)
+      ? (row as any).products?.[0]?.sku || ""
+      : (row as any).products?.sku || "",
+    product_name: Array.isArray((row as any).products)
+      ? (row as any).products?.[0]?.name || ""
+      : (row as any).products?.name || "",
     from_location: row.from_location?.name || "",
     to_location: row.to_location?.name || ""
   }));

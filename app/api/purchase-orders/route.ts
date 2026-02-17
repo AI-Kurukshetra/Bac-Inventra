@@ -62,9 +62,9 @@ export async function GET(req: Request) {
     status: row.status,
     approval_status: row.approval_status,
     total_amount: row.total_amount,
-    supplier_name: Array.isArray(row.suppliers)
-      ? row.suppliers?.[0]?.name || ""
-      : row.suppliers?.name || ""
+    supplier_name: Array.isArray((row as any).suppliers)
+      ? (row as any).suppliers?.[0]?.name || ""
+      : (row as any).suppliers?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }

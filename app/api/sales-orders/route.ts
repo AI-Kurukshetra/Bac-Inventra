@@ -62,9 +62,9 @@ export async function GET(req: Request) {
     status: row.status,
     approval_status: row.approval_status,
     total_amount: row.total_amount,
-    customer_name: Array.isArray(row.customers)
-      ? row.customers?.[0]?.name || ""
-      : row.customers?.name || ""
+    customer_name: Array.isArray((row as any).customers)
+      ? (row as any).customers?.[0]?.name || ""
+      : (row as any).customers?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }

@@ -100,25 +100,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-4 min-w-0 flex-nowrap">
           <nav className="nav whitespace-nowrap overflow-x-auto max-w-[60vw]">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
                 href={item.href}
-                style={{
-                  color: pathname === item.href ? "var(--accent)" : "inherit",
-                  fontWeight: pathname === item.href ? 600 : 500
-                }}
+                className={`nav-link ${active ? "active" : ""}`}
               >
-              {item.label}
-            </Link>
-          ))}
+                {item.label}
+              </Link>
+            );
+          })}
           {(role === "admin" || role === "owner") && (
             <Link
               href="/orgs"
-              style={{
-                color: pathname === "/orgs" ? "var(--accent)" : "inherit",
-                fontWeight: pathname === "/orgs" ? 600 : 500
-              }}
+              className={`nav-link ${pathname === "/orgs" ? "active" : ""}`}
             >
               Organization
             </Link>
@@ -126,10 +123,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {(role === "admin" || role === "owner") && (
             <Link
               href="/billing"
-              style={{
-                color: pathname === "/billing" ? "var(--accent)" : "inherit",
-                fontWeight: pathname === "/billing" ? 600 : 500
-              }}
+              className={`nav-link ${pathname === "/billing" ? "active" : ""}`}
             >
               Billing
             </Link>
@@ -137,10 +131,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {(role === "admin" || role === "owner") && (
             <Link
               href="/users"
-                style={{
-                  color: pathname === "/users" ? "var(--accent)" : "inherit",
-                  fontWeight: pathname === "/users" ? 600 : 500
-                }}
+                className={`nav-link ${pathname === "/users" ? "active" : ""}`}
               >
                 Users
               </Link>
@@ -148,10 +139,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {(role === "admin" || role === "owner") && (
             <Link
               href="/audit-logs"
-              style={{
-                color: pathname === "/audit-logs" ? "var(--accent)" : "inherit",
-                fontWeight: pathname === "/audit-logs" ? 600 : 500
-              }}
+              className={`nav-link ${pathname === "/audit-logs" ? "active" : ""}`}
             >
               Audit Logs
             </Link>

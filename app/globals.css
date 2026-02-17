@@ -14,9 +14,9 @@
     @apply m-0 text-ink;
     font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
     background:
-      radial-gradient(1200px 600px at 0% -10%, #fff7e6 0%, transparent 60%),
-      radial-gradient(1200px 800px at 100% 0%, #e7f6f4 0%, transparent 60%),
-      #f6f3ee;
+      radial-gradient(1200px 600px at 0% -10%, #e8f0ff 0%, transparent 60%),
+      radial-gradient(1200px 800px at 100% 0%, #e6f7ff 0%, transparent 60%),
+      #f7f9fc;
   }
 
   a { @apply text-inherit no-underline; }
@@ -26,7 +26,10 @@
   .container { @apply max-w-6xl mx-auto px-6 pt-8 pb-16; }
   .header { @apply flex items-center justify-between gap-4 flex-wrap; }
   .brand { @apply text-[22px] font-bold tracking-tight; }
-  .nav { @apply flex gap-3 flex-wrap text-sm text-muted; }
+  .nav { @apply flex gap-2 flex-wrap text-sm text-muted; }
+  .nav-link { @apply px-3 py-2 rounded-full text-[13px] font-medium text-muted transition-colors; }
+  .nav-link:hover { @apply bg-[#eef2ff] text-ink; }
+  .nav-link.active { @apply bg-accent text-white; }
   .panel { @apply bg-panel border border-border rounded-xl shadow-soft p-5; }
   .grid { display: grid; gap: 1.25rem; }
   .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
@@ -35,14 +38,17 @@
   .card { @apply border border-border rounded-lg p-4 bg-white; }
   .table { @apply w-full border-collapse text-sm; }
   .table th, .table td { @apply text-left py-2.5 px-2 border-b border-border; }
-  .table tbody tr:hover { @apply bg-[#faf7f2]; }
+  .table tbody tr:hover { @apply bg-[#f3f6ff]; }
   .table th { @apply text-muted font-semibold text-xs uppercase tracking-[0.06em]; }
   .form { @apply grid gap-3; }
   .input, .select, .button { @apply px-3 py-2.5 rounded-lg border border-border text-sm; }
-  .input, .select { @apply bg-white; }
-  .button { @apply bg-accent text-white font-semibold cursor-pointer; }
+  .input, .select { @apply bg-white transition-shadow; }
+  .input:focus, .select:focus { @apply outline-none ring-2 ring-accent/25 border-accent; }
+  .button { @apply bg-accent text-white font-semibold cursor-pointer transition-colors; }
+  .button:hover { @apply bg-accent2; }
   .button.secondary { @apply bg-white text-ink; }
-  .badge { @apply inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs bg-[#f1f5f4] text-accent; }
+  .button.secondary:hover { @apply bg-[#f1f5ff]; }
+  .badge { @apply inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs bg-[#eef2ff] text-accent; }
   .kpi { @apply text-2xl font-bold; }
   .muted { @apply text-muted; }
   .error { @apply text-danger; }

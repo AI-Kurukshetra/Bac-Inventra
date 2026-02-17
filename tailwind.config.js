@@ -8,17 +8,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#1a1a1a",
-        muted: "#6b6b6b",
-        accent: "#0f766e",
-        accent2: "#f59e0b",
-        border: "#e7e1d8",
+        ink: "#0b1220",
+        muted: "#6b7280",
+        accent: "#2563eb",
+        accent2: "#0ea5e9",
+        border: "#e5e7eb",
         danger: "#b42318",
         panel: "#ffffff",
-        bg: "#f6f3ee"
+        bg: "#f7f9fc"
       },
       boxShadow: {
-        soft: "0 10px 30px rgba(0,0,0,0.08)"
+        soft: "0 12px 28px rgba(15, 23, 42, 0.08)"
       },
       borderRadius: {
         xl: "16px",

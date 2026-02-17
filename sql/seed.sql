@@ -234,4 +234,11 @@ BEGIN
   INSERT INTO stock_adjustments (product_id, location_id, quantity_delta, reason, org_id)
   SELECT p.id, v_loc_main, 14, 'Initial stock', v_org_id FROM products p WHERE p.org_id = v_org_id AND p.sku = 'NW-001'
   ON CONFLICT DO NOTHING;
+
+  -- Initialize inventory balances at Main Warehouse for transfers
+  INSERT INTO inventory_balances (product_id, location_id, quantity, org_id)
+  SELECT p.id, v_loc_main, p.quantity, v_org_id
+  FROM products p
+  WHERE p.org_id = v_org_id
+  ON CONFLICT (product_id, location_id) DO UPDATE SET quantity = excluded.quantity;
 END $$;

@@ -14,9 +14,11 @@ const navItems = [
   { href: "/suppliers", label: "Suppliers" },
   { href: "/customers", label: "Customers" },
   { href: "/locations", label: "Locations" },
+  { href: "/transfers", label: "Transfers" },
   { href: "/stock-adjustments", label: "Stock Adjustments" },
   { href: "/purchase-orders", label: "Purchase Orders" },
   { href: "/sales-orders", label: "Sales Orders" },
+  { href: "/labels", label: "Barcode Labels" },
   { href: "/reports", label: "Reports" }
 ];
 

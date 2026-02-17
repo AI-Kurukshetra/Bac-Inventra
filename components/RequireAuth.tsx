@@ -20,9 +20,12 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
       "/suppliers/new",
       "/customers/new",
       "/locations/new",
+      "/transfers",
+      "/labels",
       "/purchase-orders/new",
       "/sales-orders/new",
-      "/stock-adjustments/new"
+      "/stock-adjustments/new",
+      "/audit-logs"
     ];
     const staffBlockedIdSegments = [
       "/categories/",
@@ -49,6 +52,8 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
         if (path.startsWith("/orgs")) return false;
         if (path.startsWith("/billing")) return false;
         if (path.startsWith("/audit-logs")) return false;
+        if (path.startsWith("/transfers")) return false;
+        if (path.startsWith("/labels")) return false;
         return true;
       }
     } as Record<Role, (path: string) => boolean>;

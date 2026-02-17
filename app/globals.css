@@ -54,6 +54,17 @@
   .status.pending { @apply bg-[#fef3c7] text-[#92400e]; }
   .status.approved { @apply bg-[#dcfce7] text-[#166534]; }
   .status.rejected { @apply bg-[#fee2e2] text-[#991b1b]; }
+  .label-grid { @apply grid gap-4; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .label-card { @apply border border-border rounded-lg p-3 bg-white flex flex-col items-center text-center; }
+  .label-title { @apply text-xs text-muted; }
+  .label-barcode { @apply w-full mt-2; }
+  .label-sku { @apply text-xs mt-1 text-ink; }
+
+  @media print {
+    body { background: white; }
+    .header, .banner, .panel:not(.print-area) { display: none; }
+    .print-area { border: none; box-shadow: none; }
+  }
 
   @media (max-width: 720px) {
     .header { @apply flex-col items-start; }

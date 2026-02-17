@@ -139,6 +139,23 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  // Update inventory_balances for location
+  const { data: balance } = await supabaseAdmin
+    .from("inventory_balances")
+    .select("quantity")
+    .eq("org_id", auth.orgId)
+    .eq("product_id", product.id)
+    .eq("location_id", locationId)
+    .maybeSingle();
+  const newBalance = (Number(balance?.quantity || 0) + delta);
+  await supabaseAdmin
+    .from("inventory_balances")
+    .upsert({
+      org_id: auth.orgId,
+      product_id: product.id,
+      location_id: locationId,
+      quantity: newBalance
+    });
   await logAudit({
     orgId: auth.orgId,
     actorId: auth.userId,
@@ -263,6 +280,24 @@ export async function PUT(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  // Update inventory_balances with delta diff at new location
+  const deltaDiff = newDelta - oldDelta;
+  const { data: bal } = await supabaseAdmin
+    .from("inventory_balances")
+    .select("quantity")
+    .eq("org_id", auth.orgId)
+    .eq("product_id", product.id)
+    .eq("location_id", locationId)
+    .maybeSingle();
+  const updatedBalance = (Number(bal?.quantity || 0) + deltaDiff);
+  await supabaseAdmin
+    .from("inventory_balances")
+    .upsert({
+      org_id: auth.orgId,
+      product_id: product.id,
+      location_id: locationId,
+      quantity: updatedBalance
+    });
   await logAudit({
     orgId: auth.orgId,
     actorId: auth.userId,
@@ -287,7 +322,7 @@ export async function DELETE(req: Request) {
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("stock_adjustments")
-    .select("id, quantity_delta, product_id")
+    .select("id, quantity_delta, product_id, location_id")
     .eq("id", id)
     .eq("org_id", auth.orgId)
     .single();
@@ -323,6 +358,23 @@ export async function DELETE(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  // Adjust inventory_balances for location
+  const { data: bal } = await supabaseAdmin
+    .from("inventory_balances")
+    .select("quantity")
+    .eq("org_id", auth.orgId)
+    .eq("product_id", existing.product_id)
+    .eq("location_id", existing.location_id)
+    .maybeSingle();
+  const updatedBalance = (Number(bal?.quantity || 0) - (Number(existing.quantity_delta) || 0));
+  await supabaseAdmin
+    .from("inventory_balances")
+    .upsert({
+      org_id: auth.orgId,
+      product_id: existing.product_id,
+      location_id: existing.location_id,
+      quantity: updatedBalance
+    });
   await logAudit({
     orgId: auth.orgId,
     actorId: auth.userId,

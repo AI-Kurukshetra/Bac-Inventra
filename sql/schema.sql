@@ -156,6 +156,19 @@ create table if not exists sales_order_items (
   org_id uuid references organizations(id) on delete cascade
 );
 
+-- Stock transfers
+create table if not exists stock_transfers (
+  id uuid primary key default uuid_generate_v4(),
+  org_id uuid references organizations(id) on delete cascade,
+  reference text,
+  product_id uuid not null references products(id) on delete cascade,
+  from_location_id uuid references locations(id) on delete set null,
+  to_location_id uuid references locations(id) on delete set null,
+  quantity integer not null default 1,
+  status text not null default 'completed',
+  created_at timestamptz not null default now()
+);
+
 -- Tenant-scoped uniques
 create unique index if not exists categories_org_name_key on categories (org_id, name);
 create unique index if not exists products_org_sku_key on products (org_id, sku);
@@ -188,6 +201,7 @@ alter table purchase_orders enable row level security;
 alter table purchase_order_items enable row level security;
 alter table sales_orders enable row level security;
 alter table sales_order_items enable row level security;
+alter table stock_transfers enable row level security;
 alter table audit_logs enable row level security;
 
 -- Policies (tenant scoped)
@@ -250,6 +264,10 @@ create policy "sales_orders_org_policy" on sales_orders
   with check (org_id = public.current_org_id());
 
 create policy "sales_order_items_org_policy" on sales_order_items
+  for all using (org_id = public.current_org_id())
+  with check (org_id = public.current_org_id());
+
+create policy "stock_transfers_org_policy" on stock_transfers
   for all using (org_id = public.current_org_id())
   with check (org_id = public.current_org_id());
 

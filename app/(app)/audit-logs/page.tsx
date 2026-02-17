@@ -86,6 +86,13 @@ export default function AuditLogsPage() {
             <option value="">All entities</option>
             <option value="purchase_order">Purchase Order</option>
             <option value="sales_order">Sales Order</option>
+            <option value="product">Product</option>
+            <option value="category">Category</option>
+            <option value="supplier">Supplier</option>
+            <option value="customer">Customer</option>
+            <option value="location">Location</option>
+            <option value="stock_adjustment">Stock Adjustment</option>
+            <option value="stock_transfer">Stock Transfer</option>
           </select>
           <select
             className="select"
@@ -95,6 +102,9 @@ export default function AuditLogsPage() {
             <option value="">All actions</option>
             <option value="approve">approve</option>
             <option value="reject">reject</option>
+            <option value="create">create</option>
+            <option value="update">update</option>
+            <option value="delete">delete</option>
           </select>
           <select
             className="select"

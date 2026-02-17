@@ -30,6 +30,9 @@ export async function GET(req: Request) {
         .maybeSingle();
       approvedByName = approver?.full_name || "";
     }
+    const supplierName = Array.isArray((data as any).suppliers)
+      ? (data as any).suppliers?.[0]?.name || ""
+      : (data as any).suppliers?.name || "";
     return NextResponse.json({
       data: {
         id: data.id,
@@ -40,7 +43,7 @@ export async function GET(req: Request) {
         approved_by_name: approvedByName,
         approved_at: data.approved_at,
         total_amount: data.total_amount,
-        supplier_name: data.suppliers?.name || ""
+        supplier_name: supplierName
       }
     });
   }
@@ -59,7 +62,9 @@ export async function GET(req: Request) {
     status: row.status,
     approval_status: row.approval_status,
     total_amount: row.total_amount,
-    supplier_name: row.suppliers?.name || ""
+    supplier_name: Array.isArray(row.suppliers)
+      ? row.suppliers?.[0]?.name || ""
+      : row.suppliers?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }

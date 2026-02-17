@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import bwipjs from "bwip-js";
+
+// Use require to avoid type resolution issues in build environments
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const bwipjs = require("bwip-js") as { toSVG: (opts: any) => string };
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

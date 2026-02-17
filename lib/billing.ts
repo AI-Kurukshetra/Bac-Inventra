@@ -37,16 +37,20 @@ export async function getOrgPlan(orgId: string): Promise<OrgPlan> {
     .eq("org_id", orgId)
     .maybeSingle();
 
-  if (error || !data || !data.plans) {
+  const planRow = Array.isArray((data as any)?.plans)
+    ? (data as any).plans?.[0]
+    : (data as any)?.plans;
+
+  if (error || !data || !planRow) {
     return DEFAULT_PLAN;
   }
 
   return {
-    id: data.plans.id,
-    name: data.plans.name || DEFAULT_PLAN.name,
-    limits: (data.plans.limits as PlanLimits) || DEFAULT_PLAN.limits,
+    id: planRow.id,
+    name: planRow.name || DEFAULT_PLAN.name,
+    limits: (planRow.limits as PlanLimits) || DEFAULT_PLAN.limits,
     status: data.status || DEFAULT_PLAN.status,
-    stripePriceId: data.plans.stripe_price_id,
+    stripePriceId: planRow.stripe_price_id,
     cancelAtPeriodEnd: data.cancel_at_period_end ?? false,
     currentPeriodEnd: data.current_period_end ?? null
   };

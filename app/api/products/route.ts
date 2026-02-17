@@ -23,6 +23,9 @@ export async function GET(req: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    const categoryName = Array.isArray((data as any).categories)
+      ? (data as any).categories?.[0]?.name || ""
+      : (data as any).categories?.name || "";
     const mapped = {
       id: data.id,
       sku: data.sku,
@@ -31,7 +34,7 @@ export async function GET(req: Request) {
       quantity: data.quantity ?? 0,
       unit_price: data.unit_price,
       low_stock_threshold: data.low_stock_threshold,
-      category_name: data.categories?.name || ""
+      category_name: categoryName
     };
     return NextResponse.json({ data: mapped });
   }
@@ -52,7 +55,9 @@ export async function GET(req: Request) {
     quantity: row.quantity ?? 0,
     unit_price: row.unit_price,
     low_stock_threshold: row.low_stock_threshold,
-    category_name: row.categories?.name || ""
+    category_name: Array.isArray(row.categories)
+      ? row.categories?.[0]?.name || ""
+      : row.categories?.name || ""
   }));
   return NextResponse.json({ data: mapped });
 }
